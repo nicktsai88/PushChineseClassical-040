@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>(推與敲) 第40篇 只為一堵牆 - 互動式古文學習</title>
+    <title>(推與敲) 第40篇 只為一堵牆 - 互動式古文學習 (AI 旗艦版)</title>
     <!-- 載入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 載入 Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 載入 JSZip 和 FileSaver (用於打包下載) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <!-- 載入 FontAwesome 圖標 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 載入 Canvas Confetti (特效) -->
@@ -177,7 +180,7 @@
                     <span class="font-bold text-xl tracking-wider">古文互動教室</span>
                 </div>
                 <div class="hidden md:block text-sm opacity-80">
-                    GitHub 版
+                    AI 旗艦版
                 </div>
             </div>
         </div>
@@ -275,6 +278,7 @@
     </div>
 
     <script>
+        const apiKey = ""; // API Key
         
         // ----------------------------------------------------
         // 1. 教材資料結構 (Content Data) - 只為一堵牆
@@ -296,7 +300,7 @@
                 "**借代 (Metonymy):** 「京師」借代朝廷或中央政府；「馳書」借代緊急的求助。"
             ],
             
-            // 36個詳盡語詞精解
+            // 36個詳盡語詞精解 - 全部將嵌入文言文中
             vocabulary: [
                 { word: "桐城", zhuyin: "ㄊㄨㄥˊ ㄔㄥˊ", pos: "地名", meaning: "安徽省桐城市，以此地文風鼎盛著稱，有「桐城派」文學流派。" },
                 { word: "張英", zhuyin: "ㄓㄤ ㄧㄥ", pos: "人名", meaning: "清朝名臣，官至文華殿大學士兼禮部尚書，人稱張宰相。" },
@@ -341,31 +345,46 @@
                     original: "桐城張英故居，鄰家建屋，圍牆誤侵張家界址。錯已鑄成，無法退讓。",
                     translation: "在安徽桐城，禮部尚書張英的老家，鄰居建造房屋時，圍牆錯誤地侵占了張家的地界。錯誤已經造成，雙方爭執不下，誰也不願意退讓。",
                     audioText: "桐城張英故居，鄰家建屋，圍牆誤侵張家界址。錯已鑄成，無法退讓。",
-                    imagePath: "images/reading_segment_1.jpg"
+                    notes: {},
+                    // 圖片提示：彩色豐富、人像逼真
+                    imagePrompt: "Hyper-realistic, colorful, detailed cinematic shot. Qing dynasty setting. A narrow alleyway construction site. Two groups of people (one representing the Zhang family, one the neighbor) arguing heatedly over a brick wall foundation. Angry expressions, traditional clothing. 8k resolution. NO text.",
+                    imageData: null
                 },
                 {
                     original: "張時已位居顯要，供職京師。家人馳書以告，指陳鄰戶蠻橫，要求轉囑地方官出面評斷。",
                     translation: "當時張英已經身居高位（禮部尚書），在京城任職。老家的家人趕緊寫信告知，指責鄰居蠻橫無理，要求張英利用職權囑託地方官出面判決（幫張家贏回面子）。",
                     audioText: "張時已位居顯要，供職京師。家人馳書以告，指陳鄰戶蠻橫，要求轉囑地方官出面評斷。",
-                    imagePath: "images/reading_segment_2.jpg"
+                    notes: {},
+                    // 圖片提示：彩色豐富、人像逼真
+                    imagePrompt: "Hyper-realistic, colorful, detailed portrait. An ancient study room. A family member (looking anxious/angry) writing a letter with a brush. Sunlight streaming through a lattice window. Details of inkstone and paper. 8k resolution. NO text.",
+                    imageData: null
                 },
                 {
                     original: "張得書，未置可否，僅寄七絕一首作覆，云:「千里修書只為牆，讓他三尺又何妨？",
                     translation: "張英收到信後，沒有說誰對誰錯，只寄回一首七言絕句作為答覆，詩中寫道：「千里迢迢寫信來只為了這一堵牆的事，讓他三尺又有什麼關係呢？",
                     audioText: "張得書，未置可否，僅寄七絕一首作覆，云:千里修書只為牆，讓他三尺又何妨？",
-                    imagePath: "images/reading_segment_3.jpg"
+                    notes: {},
+                    // 圖片提示：彩色豐富、人像逼真
+                    imagePrompt: "Hyper-realistic, colorful, detailed portrait. Zhang Ying (an elderly, wise official in Qing dynasty official robes) reading a letter in a grand palace study in Beijing. He has a calm, benevolent smile. Holding a brush ready to write poetry. 8k resolution. NO text.",
+                    imageData: null
                 },
                 {
                     original: "萬里長城今猶在，不見當年秦始皇。」家人得書，謹遵指示，未再追究。",
                     translation: "萬里長城至今還在，但當年修築它的秦始皇如今在哪裡呢？」家人收到回信，恭敬地遵照指示，不再去追究鄰居的責任。",
                     audioText: "萬里長城今猶在，不見當年秦始皇。家人得書，謹遵指示，未再追究。",
-                    imagePath: "images/reading_segment_4.jpg"
+                    notes: {},
+                    // 圖片提示：彩色豐富、人像逼真
+                    imagePrompt: "Hyper-realistic, colorful, detailed landscape. A metaphorical image blending the Great Wall of China in the distance with the image of Zhang Ying writing. The foreground shows the family reading the poem with looks of realization and shame. 8k resolution. NO text.",
+                    imageData: null
                 },
                 {
                     original: "事為鄰家得知，深感愧疚，乃拆除圍牆重建，除退還張府三尺地界外，復自行再退進三尺，空出一條巷道。後人遂以「六尺巷」名之。",
                     translation: "這件事被鄰居知道了，感到非常慚愧，於是拆除圍牆重新建造。除了退還張家的三尺地界外，鄰居也主動再向後退三尺。這樣兩家之間就空出一條六尺寬的巷道。後人便將此巷命名為「六尺巷」。",
                     audioText: "事為鄰家得知，深感愧疚，乃拆除圍牆重建，除退還張府三尺地界外，復自行再退進三尺，空出一條巷道。後人遂以六尺巷名之。",
-                    imagePath: "images/reading_segment_5.jpg"
+                    notes: {},
+                    // 圖片提示：彩色豐富、人像逼真
+                    imagePrompt: "Hyper-realistic, colorful, detailed street shot. The finished 'Six-Foot Lane' in Tongcheng. A peaceful, narrow stone-paved alleyway between two traditional walls. People walking through it peacefully. Warm, harmonious atmosphere. 8k resolution. NO text.",
+                    imageData: null
                 }
             ],
             // 隨堂測驗 (高難度 - 20題)
@@ -404,7 +423,10 @@
         // ----------------------------------------------------
         let currentTab = 'overview';
         let chatHistory = [];
+        let isGeneratingImage = false;
+        let currentAudio = null;
         let currentPersona = 'zhangying'; 
+        let hasPreloadedStory = false;
         let userAnswers = {}; 
 
         const personas = {
@@ -436,7 +458,9 @@
             start: {
                 id: 'start',
                 text: "你是張英，此刻正在京城的書房處理公務。家鄉送來一封急信，信中說鄰居葉家蓋房侵占了你家三尺地基，家人爭執不下，請你寫信給縣令幫忙出氣。你會...",
-                imagePath: "images/rpg_start.jpg",
+                // 圖片提示：彩色豐富、人像逼真
+                imgPrompt: "Hyper-realistic, colorful, detailed portrait. Zhang Ying in official robes reading a letter with a frown, then relaxing into a smile. Background is a Qing dynasty study. 8k resolution. NO text.",
+                imageData: null,
                 choices: [
                     { text: "寫信給縣令，讓他嚴辦鄰居", next: "bad_end_1" },
                     { text: "回信給家人，勸導退讓", next: "write_poem" }
@@ -445,14 +469,16 @@
             bad_end_1: {
                 id: 'bad_end_1',
                 text: "【Bad Ending: 仗勢欺人】你利用職權壓制了鄰居。雖然贏了三尺地，但鄰里鄉親都在背後議論你仗勢欺人，張家的名聲從此一落千丈，你也因此被御史彈劾。",
-                imagePath: "images/rpg_bad_end_1.jpg",
+                imageData: null,
                 choices: [{ text: "重來", next: "start" }],
                 isEnding: true
             },
             write_poem: {
                 id: 'write_poem',
                 text: "你提筆寫下一首詩：「千里修書只為牆，讓他三尺又何妨？萬里長城今猶在，不見當年秦始皇。」並將信寄回桐城。家人收到信後...",
-                imagePath: "images/rpg_write_poem.jpg",
+                // 圖片提示：彩色豐富、人像逼真
+                imgPrompt: "Hyper-realistic, colorful, close-up. A hand holding a brush writing Chinese calligraphy on rice paper. The characters for 'Let him three feet' are visible. Warm lighting. 8k. NO text.",
+                imageData: null,
                 choices: [
                     { text: "家人不服氣，繼續爭吵", next: "bad_end_2" },
                     { text: "家人慚愧，主動退讓三尺", next: "retreat" }
@@ -461,14 +487,16 @@
             bad_end_2: {
                 id: 'bad_end_2',
                 text: "【Bad Ending: 家風不正】家人沒有領悟你的深意，繼續與鄰居爭吵。你得知後感嘆家風敗壞，不久後告老還鄉，鬱鬱而終。",
-                imagePath: "images/rpg_bad_end_2.jpg",
+                imageData: null,
                 choices: [{ text: "重來", next: "start" }],
                 isEnding: true
             },
             retreat: {
                 id: 'retreat',
                 text: "家人讀懂了你的苦心，主動將圍牆向後退了三尺。鄰居葉家看到張家如此大度，感到非常驚訝與羞愧。鄰居決定...",
-                imagePath: "images/rpg_retreat.jpg",
+                // 圖片提示：彩色豐富、人像逼真
+                imgPrompt: "Hyper-realistic, colorful, detailed scene. Workers moving a wall back. The Zhang family standing humbly. The neighbor watching with a shocked expression. 8k resolution. NO text.",
+                imageData: null,
                 choices: [
                     { text: "佔便宜，把牆蓋過來", next: "bad_end_3" },
                     { text: "也退後三尺，以示歉意", next: "happy_end" }
@@ -477,14 +505,16 @@
             bad_end_3: {
                 id: 'bad_end_3',
                 text: "【Normal Ending: 一方退讓】鄰居雖然佔了便宜，但全城百姓都稱讚張家而鄙視葉家。雖然留下了美名，但未能形成「六尺巷」的佳話。",
-                imagePath: "images/rpg_bad_end_3.jpg",
+                imageData: null,
                 choices: [{ text: "重來", next: "start" }],
                 isEnding: true
             },
             happy_end: {
                 id: 'happy_end',
                 text: "【True Ending: 六尺巷佳話】鄰居也退後三尺，兩家之間形成了一條寬敞的巷道。這便是流芳百世的「六尺巷」。康熙皇帝聽聞此事，也對你大加讚賞。",
-                imagePath: "images/rpg_happy_end.jpg",
+                // 圖片提示：彩色豐富、人像逼真
+                imgPrompt: "Hyper-realistic, colorful, detailed cinematic shot. The Six-Foot Lane in sunlight. People from both families bowing to each other in the lane. Harmony and peace. 8k resolution. NO text.",
+                imageData: null,
                 choices: [{ text: "重來", next: "start" }],
                 isEnding: true,
                 win: true
@@ -540,6 +570,7 @@
                     case 'quiz': renderQuiz(container); break;
                     case 'story': 
                         renderStory(container); 
+                        preloadStoryImages(); 
                         break;
                 }
                 container.style.opacity = '1';
@@ -570,7 +601,11 @@
         function renderReading(container) {
             let segmentsHtml = contentData.segments.map((seg, idx) => {
                 let displayHtml = seg.original;
+                // 智慧嵌入所有關鍵字
+                // 按長度排序，優先匹配長詞
                 const sortedKeys = Object.keys(allKeywords).sort((a, b) => b.length - a.length);
+                
+                // 使用特殊的佔位符避免重複替換
                 const placeholders = {};
                 let counter = 0;
 
@@ -583,19 +618,15 @@
                     }
                 });
 
+                // 還原佔位符為 HTML 標籤
                 Object.keys(placeholders).forEach(ph => {
                     const key = placeholders[ph];
                     displayHtml = displayHtml.split(ph).join(`<span class="interactive-word" onclick="showNote('${key}', ${idx}, this, event)">${key}</span>`);
                 });
 
-                // 靜態圖片載入邏輯
-                let imageSection = `
-                    <div class="mt-6 rounded-lg overflow-hidden shadow-lg">
-                        <img src="${seg.imagePath}" 
-                             class="w-full h-auto rounded-lg shadow-md" 
-                             alt="段落插圖"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'h-48 bg-gray-100 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300\'><i class=\'fas fa-image mr-2\'></i>圖片準備中...請確認 images 資料夾</div>'">
-                    </div>`;
+                let imageSection = seg.imageData 
+                    ? `<div class="mt-6 rounded-lg overflow-hidden shadow-lg animate-fade-in"><img src="${seg.imageData}" class="w-full h-auto rounded-lg shadow-md" alt="段落插圖"></div>`
+                    : `<div id="img-placeholder-${idx}" class="hidden mt-6 h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300"><i class="fas fa-image mr-2"></i>AI 擬真圖解區</div>`;
 
                 return `
                     <div class="group mb-12 relative pl-6 border-l-4 border-gray-200 hover:border-amber-500 transition-colors duration-300">
@@ -622,6 +653,20 @@
             }).join('');
 
             container.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-6 mb-8 items-center bg-amber-50 p-4 rounded-xl border border-amber-100">
+                    <div class="flex-grow">
+                        <h3 class="font-bold text-amber-900 text-lg">AI 擬真圖解</h3>
+                        <p class="text-sm text-amber-700">還原六尺巷故事場景 (彩色豐富人像逼真風格)。</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="btn-gen-all" onclick="generateAllImages()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow transition flex items-center font-medium">
+                            <i class="fas fa-paint-brush mr-2"></i>一鍵生成全篇圖解
+                        </button>
+                        <button id="btn-download-all" onclick="downloadAllImages()" class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow transition flex items-center font-medium">
+                            <i class="fas fa-download mr-2"></i>下載所有圖片
+                        </button>
+                    </div>
+                </div>
                 <div class="max-w-3xl mx-auto">
                     ${segmentsHtml}
                 </div>
@@ -833,7 +878,7 @@
             msgContainer.appendChild(aiBubble);
             msgContainer.scrollTop = msgContainer.scrollHeight;
 
-            // Simulate AI response (Mock logic for static version)
+            // Simulate AI response (Mock logic)
             setTimeout(() => {
                 let reply = "";
                 if (currentPersona === 'zhangying') {
@@ -847,7 +892,7 @@
                 aiBubble.innerHTML = reply;
                 chatHistory.push({ role: 'ai', content: reply });
                 msgContainer.scrollTop = msgContainer.scrollHeight;
-            }, 1000);
+            }, 1500);
         }
 
         function renderQuiz(container) {
@@ -910,6 +955,7 @@
                     <h2 class="text-2xl font-bold text-center mb-8 text-gray-700">高難度挑戰 (共20題)</h2>
                     ${quizHtml}
                     
+                    <!-- Submit Button Area -->
                     <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg flex justify-center items-center z-40">
                          <button onclick="submitQuiz()" class="px-8 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-full shadow-lg transition transform hover:scale-105 flex items-center text-lg">
                             <i class="fas fa-paper-plane mr-2"></i> 交卷並查看成績
@@ -923,13 +969,14 @@
             if(!window.currentStoryNode) window.currentStoryNode = 'start';
             const node = storyNodes[window.currentStoryNode];
 
-            // 靜態載入邏輯
-            let imageContent = `<div class="w-full overflow-hidden rounded-t-xl">
-                <img src="${node.imagePath}" 
-                     class="w-full h-auto fade-in-image" 
-                     alt="場景圖"
-                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'h-48 bg-gray-100 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300\'><i class=\'fas fa-image mr-2\'></i>圖片準備中...請確認 images 資料夾</div>'">
-            </div>`;
+            let imageContent;
+            if (node.isLoading) {
+                 imageContent = `<div class="h-auto min-h-[256px] bg-gray-100 flex flex-col items-center justify-center relative overflow-hidden rounded-t-xl border-b border-gray-200"><div class="z-10 text-center animate-pulse"><i class="fas fa-palette text-4xl text-amber-400 mb-3"></i><p class="text-amber-600 font-bold">正在為您繪製場景...</p></div></div>`;
+            } else if (node.imageData) {
+                imageContent = `<div class="w-full overflow-hidden rounded-t-xl"><img src="${node.imageData}" class="w-full h-auto fade-in-image" alt="場景圖"></div>`;
+            } else {
+                 imageContent = `<div class="h-auto min-h-[256px] bg-gray-100 flex flex-col items-center justify-center relative overflow-hidden rounded-t-xl border-b border-gray-200"><div class="z-10 text-center"><i class="fas fa-image text-4xl text-gray-300 mb-3"></i><p class="text-gray-500 text-sm">場景圖準備中 (彩色擬真)...</p></div></div>`;
+            }
 
             container.innerHTML = `<div class="max-w-2xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden border border-amber-100">${imageContent}<div class="p-8"><div class="flex items-center mb-4 text-amber-800 text-sm font-bold uppercase tracking-widest"><i class="fas fa-scroll mr-2"></i> 抉擇時刻</div><p class="text-xl leading-relaxed text-gray-800 mb-8 font-serif">${node.text}</p>${node.isEnding ? (node.win ? `<div class="text-center mb-6 text-green-600 font-bold text-2xl p-4 bg-green-50 rounded-lg border border-green-200"><i class="fas fa-trophy mr-2"></i>達成結局</div>` : `<div class="text-center mb-6 text-gray-600 font-bold text-2xl p-4 bg-gray-50 rounded-lg border border-gray-200">故事結束</div>`) : ''}<div class="grid gap-4">${node.choices.map(c => `<button onclick="nextStoryNode('${c.next}')" class="story-choice w-full py-4 px-6 bg-white hover:bg-amber-50 border-2 border-amber-200 hover:border-amber-400 rounded-xl text-amber-900 font-bold text-lg transition duration-200 flex items-center justify-between group"><span>${c.text}</span><i class="fas fa-chevron-right text-amber-300 group-hover:text-amber-600 transition"></i></button>`).join('')}</div></div></div>`;
             if(node.win) { try { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); } catch (e) { console.log("Confetti not loaded"); } }
@@ -938,6 +985,144 @@
         function nextStoryNode(nodeId) {
             window.currentStoryNode = nodeId;
             renderStory(document.getElementById('content-display'));
+        }
+        
+        async function preloadStoryImages() {
+            if (hasPreloadedStory) return;
+            hasPreloadedStory = true;
+            await generateStoryImage('start');
+            const allIds = Object.keys(storyNodes).filter(id => id !== 'start');
+            for (const id of allIds) {
+                await new Promise(r => setTimeout(r, 500));
+                generateStoryImage(id).catch(e => console.error(`Background gen failed for ${id}`, e));
+            }
+        }
+
+        async function generateStoryImage(nodeId) {
+            const node = storyNodes[nodeId];
+            if (node.imageData || node.isLoading) return; 
+            
+            if (!node.imgPrompt) {
+                node.imgPrompt = "Hyper-realistic, colorful, detailed cinematic shot. Ancient Chinese setting. 8k resolution. NO text.";
+            }
+
+            node.isLoading = true;
+            if (window.currentStoryNode === nodeId) { const container = document.getElementById('content-display'); if(container) renderStory(container); }
+            try {
+                // 呼叫 Gemini Imagen 4.0 API
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                const response = await fetch(url, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        instances: [{ prompt: node.imgPrompt }], 
+                        parameters: { sampleCount: 1 } 
+                    }) 
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                if (data.predictions && data.predictions[0].bytesBase64Encoded) { 
+                    node.imageData = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`; 
+                } else { 
+                    throw new Error("No image data returned"); 
+                }
+            } catch (err) { 
+                console.error(`Story image failed for ${nodeId}:`, err); 
+                showError("圖片生成失敗，可能是 API 限制或網路問題。");
+            } finally { 
+                node.isLoading = false; 
+                if (window.currentStoryNode === nodeId) { 
+                    const container = document.getElementById('content-display'); 
+                    if(container) renderStory(container); 
+                } 
+            }
+        }
+
+        async function generateAllImages() {
+            if (isGeneratingImage) return;
+            const btn = document.getElementById('btn-gen-all');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>書畫繪製中...';
+            isGeneratingImage = true;
+            contentData.segments.forEach((_, i) => { document.getElementById(`img-placeholder-${i}`)?.classList.remove('hidden'); });
+            
+            try {
+                for (let i = 0; i < contentData.segments.length; i++) {
+                    if (contentData.segments[i].imageData) continue;
+                    
+                    const prompt = contentData.segments[i].imagePrompt;
+                    // 呼叫 Gemini Imagen 4.0 API
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                    const response = await fetch(url, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ 
+                            instances: [{ prompt: prompt }], 
+                            parameters: { sampleCount: 1 } 
+                        }) 
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    const data = await response.json();
+                    if (data.predictions && data.predictions[0].bytesBase64Encoded) {
+                        const b64 = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                        contentData.segments[i].imageData = b64;
+                        const ph = document.getElementById(`img-placeholder-${i}`);
+                        if (ph) { 
+                            const imgDiv = document.createElement('div'); 
+                            imgDiv.className = "mt-6 rounded-lg overflow-hidden shadow-lg animate-fade-in"; 
+                            imgDiv.innerHTML = `<img src="${b64}" class="w-full h-auto rounded-lg shadow-md" alt="段落插圖">`; 
+                            ph.replaceWith(imgDiv); 
+                        }
+                    }
+                }
+            } catch (err) { 
+                showError("圖片生成過程中遇到了一些問題，請稍後再試。"); 
+                console.error(err); 
+            } finally { 
+                isGeneratingImage = false; 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i>繪製完成'; 
+            }
+        }
+
+        // Download function
+        async function downloadAllImages() {
+            const zip = new JSZip();
+            let count = 0;
+            const title = contentData.metadata.title.replace(/[^\w\u4e00-\u9fa5]/g, "_") || "download";
+            const folder = zip.folder("images");
+
+            // Reading segments
+            contentData.segments.forEach((seg, index) => {
+                if (seg.imageData) {
+                    const base64Data = seg.imageData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                    // Save as .jpg
+                    folder.file(`reading_segment_${index + 1}.jpg`, base64Data, {base64: true});
+                    count++;
+                }
+            });
+
+            // RPG nodes
+            Object.entries(storyNodes).forEach(([nodeId, node]) => {
+                if (node.imageData) {
+                    const base64Data = node.imageData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+                    // Save as .jpg
+                    folder.file(`rpg_${nodeId}.jpg`, base64Data, {base64: true});
+                    count++;
+                }
+            });
+
+            if (count === 0) {
+                showError("沒有可下載的圖片，請先生成圖片。(演示模式下無圖片)");
+                return;
+            }
+
+            const content = await zip.generateAsync({type: "blob"});
+            saveAs(content, `${title}_images.zip`);
         }
 
         function checkAnswer(idx, val, ans) {
@@ -970,7 +1155,7 @@
                 feedbackEl.innerHTML = `
                     <div class="mb-2">
                         <span class="block font-bold text-red-600"><i class="fas fa-times-circle mr-1"></i>答錯了</span>
-                        <span class="block text-gray-600">您的答案：${userOption}</span>
+                        <span class="block text-gray-600">您的答案：${userOption || userAnswer}</span>
                         <span class="block text-green-600 font-bold">正確答案：${correctOption}</span>
                     </div>
                     <div class="pt-2 border-t border-gray-200">
@@ -1044,6 +1229,7 @@
             let left = rect.left + scrollLeft;
             let top = rect.bottom + scrollTop + 5; 
             
+            // 防止彈出視窗超出螢幕右側
             if (left + 300 > document.body.clientWidth) { 
                 left = document.body.clientWidth - 310; 
             }
@@ -1077,6 +1263,7 @@
             requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.classList.add('hidden'), 300); }, 4000);
         }
+
     </script>
 </body>
 </html>
